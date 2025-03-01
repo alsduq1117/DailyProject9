@@ -34,7 +34,7 @@ public class PostService {
         return PostResponse.from(post);
     }
 
-    @Cacheable(value = "postCache", key = "#postId")
+    @Cacheable(value = "postCache", key = "#postId", unless = "#result == null")
     public PostResponse get(Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
         return PostResponse.from(post);

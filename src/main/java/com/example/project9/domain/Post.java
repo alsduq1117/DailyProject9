@@ -5,15 +5,19 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLDelete(sql = "UPDATE post SET deleted = 1 WHERE id = ?")
-@SQLRestriction("deleted = 0")
-public class Post extends BaseEntity{
+@SQLDelete(sql = "UPDATE post SET deleted_at = NOW() WHERE id = ?")
+//@SQLRestriction("deleted_at IS NULL")
+@Slf4j
+public class Post extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +27,15 @@ public class Post extends BaseEntity{
 
     private String content;
 
-    private int deleted;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
 
     @Builder
-    public Post(String title, String content, int deleted) {
+    public Post(String title, String content, LocalDateTime deletedAt) {
         this.title = title;
         this.content = content;
-        this.deleted = deleted;
+        this.deletedAt = deletedAt;
     }
 
     public PostEditor.PostEditorBuilder toEditor() {
@@ -42,5 +47,10 @@ public class Post extends BaseEntity{
     public void edit(PostEditor postEditor) {
         this.title = postEditor.getTitle();
         this.content = postEditor.getContent();
+    }
+
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
+        log.info("Deleted at: {}", this.deletedAt); // 로그 추가
     }
 }
